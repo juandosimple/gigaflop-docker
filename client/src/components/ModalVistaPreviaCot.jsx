@@ -31,6 +31,7 @@
 import React from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { calcularResumen } from '../utils/calculosCotizacion';
 
 
 
@@ -76,6 +77,23 @@ export default function ModalVistaPreviaCot({ visible, onClose, cotizacion, load
         estado: estadoVendedor
     } = vendedor;
 
+    // ✅ Helper para calcular resumen fiscal (mismo que en ResumenCotizacion)
+    // Calculamos el resumen siempre, no dependemos de que venga del backend
+    // Usamos cotizacion.resumen_fiscal?.costoEnvio como fallback por si cotizacion.costo_envio viene en 0
+    let resumenFiscal = null;
+    if (cotizacion) {
+        const r = calcularResumen(
+            cotizacion.productos,
+            cotizacion.costo_envio || cotizacion.resumen_fiscal?.costoEnvio || 0
+        );
+        resumenFiscal = {
+            ...r,
+            descuentosTotales: r.totalDescuentos,
+            baseImponible: r.baseImp,
+            totalFinal: r.total
+        };
+    }
+
     const generarPDFInterno = () => {
         if (!cotizacion || !cotizacion.productos) return;
         const doc = new jsPDF();
@@ -102,22 +120,21 @@ export default function ModalVistaPreviaCot({ visible, onClose, cotizacion, load
         });
 
         // Resumen fiscal
-        // Resumen fiscal
-        if (cotizacion.resumen_fiscal) {
+        if (resumenFiscal) {
             const y = doc.lastAutoTable.finalY + 10;
             doc.text('Resumen Fiscal', 14, y);
             doc.autoTable({
                 startY: y + 4,
                 head: [['Concepto', 'Monto']],
                 body: [
-                    ['Base 21% (productos con iva 21%)', `$${cotizacion.resumen_fiscal.base21.toFixed(2)}`],
-                    ['Base 10.5% (productos con iva 10.5%)', `$${cotizacion.resumen_fiscal.base105.toFixed(2)}`],
-                    ['Costo de envío', `$${cotizacion.resumen_fiscal.costoEnvio.toFixed(2)}`],
-                    ['IVA 21% (incluye envío)', `$${cotizacion.resumen_fiscal.iva21.toFixed(2)}`],
-                    ['IVA 10.5%', `$${cotizacion.resumen_fiscal.iva105.toFixed(2)}`],
-                    ['Descuentos', `$${cotizacion.resumen_fiscal.descuentosTotales.toFixed(2)}`],
-                    ['Base imponible (incluye envío)', `$${cotizacion.resumen_fiscal.baseImponible.toFixed(2)}`],
-                    ['Total Final', `$${cotizacion.resumen_fiscal.totalFinal.toFixed(2)}`],
+                    ['Base 21% (productos con iva 21%)', `$${resumenFiscal.base21.toFixed(2)}`],
+                    ['Base 10.5% (productos con iva 10.5%)', `$${resumenFiscal.base105.toFixed(2)}`],
+                    ['Costo de envío', `$${resumenFiscal.costoEnvio.toFixed(2)}`],
+                    ['IVA 21% (incluye envío)', `$${resumenFiscal.iva21.toFixed(2)}`],
+                    ['IVA 10.5%', `$${resumenFiscal.iva105.toFixed(2)}`],
+                    ['Descuentos', `$${resumenFiscal.descuentosTotales.toFixed(2)}`],
+                    ['Base imponible (incluye envío)', `$${resumenFiscal.baseImponible.toFixed(2)}`],
+                    ['Total Final', `$${resumenFiscal.totalFinal.toFixed(2)}`],
                 ],
             });
         }
@@ -237,7 +254,7 @@ export default function ModalVistaPreviaCot({ visible, onClose, cotizacion, load
 
 
                                     {/* Resumen Fiscal */}
-                                    {cotizacion.resumen_fiscal && (
+                                    {resumenFiscal && (
                                         <div className="card mt-4 shadow-sm border-0">
                                             <div className="card-header bg-light fw-semibold">
                                                 <i className="bi bi-receipt me-2"></i>Resumen Fiscal
@@ -248,49 +265,49 @@ export default function ModalVistaPreviaCot({ visible, onClose, cotizacion, load
                                                         <tr>
                                                             <td>Base 21% (productos con iva 21%)</td>
                                                             <td className="text-end text-primary">
-                                                                ${cotizacion.resumen_fiscal.base21.toFixed(2)}
+                                                                ${resumenFiscal.base21.toFixed(2)}
                                                             </td>
                                                         </tr>
                                                         <tr>
                                                             <td>Base 10.5% (productos con iva 10.5%)</td>
                                                             <td className="text-end text-info">
-                                                                ${cotizacion.resumen_fiscal.base105.toFixed(2)}
+                                                                ${resumenFiscal.base105.toFixed(2)}
                                                             </td>
                                                         </tr>
                                                         <tr>
                                                             <td>Costo de envío</td>
                                                             <td className="text-end text-secondary">
-                                                                ${cotizacion.resumen_fiscal.costoEnvio.toFixed(2)}
+                                                                ${resumenFiscal.costoEnvio.toFixed(2)}
                                                             </td>
                                                         </tr>
                                                         <tr>
                                                             <td>IVA 21% (incluye envío)</td>
                                                             <td className="text-end text-primary">
-                                                                ${cotizacion.resumen_fiscal.iva21.toFixed(2)}
+                                                                ${resumenFiscal.iva21.toFixed(2)}
                                                             </td>
                                                         </tr>
                                                         <tr>
                                                             <td>IVA 10.5%</td>
                                                             <td className="text-end text-info">
-                                                                ${cotizacion.resumen_fiscal.iva105.toFixed(2)}
+                                                                ${resumenFiscal.iva105.toFixed(2)}
                                                             </td>
                                                         </tr>
                                                         <tr>
                                                             <td>Descuentos</td>
                                                             <td className="text-end text-danger">
-                                                                ${cotizacion.resumen_fiscal.descuentosTotales.toFixed(2)}
+                                                                ${resumenFiscal.descuentosTotales.toFixed(2)}
                                                             </td>
                                                         </tr>
                                                         <tr className="table-light">
                                                             <td><strong>Base imponible (incluye envío)</strong></td>
                                                             <td className="text-end">
-                                                                <strong>${cotizacion.resumen_fiscal.baseImponible.toFixed(2)}</strong>
+                                                                <strong>${resumenFiscal.baseImponible.toFixed(2)}</strong>
                                                             </td>
                                                         </tr>
                                                         <tr className="table-light">
                                                             <td><strong>Total Final</strong></td>
                                                             <td className="text-end">
-                                                                <strong>${cotizacion.resumen_fiscal.totalFinal.toFixed(2)}</strong>
+                                                                <strong>${resumenFiscal.totalFinal.toFixed(2)}</strong>
                                                             </td>
                                                         </tr>
                                                     </tbody>

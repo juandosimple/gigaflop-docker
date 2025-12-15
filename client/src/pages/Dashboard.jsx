@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [all, setAll] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const perPage = 10;
 
   // filtros
@@ -30,16 +31,17 @@ const Dashboard = () => {
 
   // cargar datos desde el nuevo endpoint
   useEffect(() => {
+    setLoading(true);
     const token = localStorage.getItem("token");
     axios.get("/api/cotizaciones/dashboard", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => {
-
         setAll(res.data);
         setFiltered(res.data);
       })
-      .catch(err => console.error("Error al obtener cotizaciones:", err));
+      .catch(err => console.error("Error al obtener cotizaciones:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   // KPIs normalizados
@@ -163,6 +165,7 @@ const Dashboard = () => {
           pages={pages}
           setPage={setPage}
           filtered={filtered}
+          loading={loading}
         />
       </main>
     </>

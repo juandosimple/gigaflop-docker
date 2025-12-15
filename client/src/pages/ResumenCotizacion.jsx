@@ -9,6 +9,7 @@ import autoTable from 'jspdf-autotable';
 import axios from 'axios';
 import EtiquetaEstado from '../components/ui/EtiquetaEstado';
 import PageHeader from '../components/PageHeader';
+import { calcularResumen } from '../utils/calculosCotizacion';
 
 const ResumenCotizacion = () => {
   const { state } = useLocation();
@@ -27,30 +28,14 @@ const ResumenCotizacion = () => {
   const diasPago = cotizacion.condiciones?.dias_pago || cotizacion.dias_pago || cotizacion.cabecera?.dias_pago || '-';
   const observaciones = cotizacion.condiciones?.observaciones || cotizacion.observaciones || cotizacion.cabecera?.observaciones || '';
 
-  const calcularResumenFiscal = (productos, costoEnvio = 0) => {
-    let base21 = 0, base105 = 0, descuentosTotales = 0;
-
-    productos.forEach(p => {
-      const precioFinal = Number(p.precio_unitario) - Number(p.descuento);
-      const subtotal = precioFinal * Number(p.cantidad);
-      const iva = Number(p.tasa_iva ?? 21);
-
-      descuentosTotales += Number(p.descuento ?? 0);
-
-      if (iva === 21) base21 += subtotal;
-      else if (iva === 10.5) base105 += subtotal;
-      else base21 += subtotal; // fallback
-    });
-
-    const iva21 = (base21 + costoEnvio) * 0.21;
-    const iva105 = base105 * 0.105;
-    const baseImponible = base21 + base105 + costoEnvio;
-    const totalFinal = baseImponible + iva21 + iva105 - descuentosTotales;
-
-    return { base21, base105, costoEnvio, iva21, iva105, descuentosTotales, baseImponible, totalFinal };
-  };
   // ✅ Usala para obtener el resumen
-  const resumenFiscal = calcularResumenFiscal(cotizacion.productos, cotizacion.costo_envio || 0);
+  const r = calcularResumen(cotizacion.productos, cotizacion.costo_envio || 0);
+  const resumenFiscal = {
+    ...r,
+    descuentosTotales: r.totalDescuentos,
+    baseImponible: r.baseImp,
+    totalFinal: r.total
+  };
 
 
 
@@ -86,6 +71,15 @@ const ResumenCotizacion = () => {
 
   const generarPDFCotizacion = () => {
     const pdf = new jsPDF('p', 'mm', 'a4');
+    // Calculamos resumen temprano para usar en todo el PDF
+    const r = calcularResumen(cotizacion.productos, cotizacion.costo_envio || 0);
+    const resumenFiscal = {
+      ...r,
+      descuentosTotales: r.totalDescuentos,
+      baseImponible: r.baseImp,
+      totalFinal: r.total
+    };
+
     const margin = 10;
     let y = margin;
 
@@ -196,10 +190,7 @@ const ResumenCotizacion = () => {
       y += 5;
     }
 
-    pdf.text(`Costo de envío: $${Number(cotizacion.costo_envio || 0).toFixed(2)}`, margin, y);
-    y += 5;
-
-    pdf.text(`Envío bonificado: ${cotizacion.envio_bonificado ? 'Sí' : 'No'}`, margin, y);
+    pdf.text(`Costo de envío: $${Number(resumenFiscal.costoEnvio || 0).toFixed(2)}`, margin, y);
     y += 8;
 
 
@@ -252,31 +243,8 @@ const ResumenCotizacion = () => {
       alternateRowStyles: { fillColor: [245, 245, 255] }
     });
 
-    // ✅ Resumen Fiscal (sin cambios)
-    const calcularResumenFiscal = (productos, costoEnvio = 0) => {
-      let base21 = 0, base105 = 0, descuentosTotales = 0;
+    // (resumenFiscal ya calculado al inicio)
 
-      productos.forEach(p => {
-        const precioFinal = Number(p.precio_unitario) - Number(p.descuento);
-        const subtotal = precioFinal * Number(p.cantidad);
-        const iva = Number(p.tasa_iva ?? 21);
-
-        descuentosTotales += Number(p.descuento ?? 0);
-
-        if (iva === 21) base21 += subtotal;
-        else if (iva === 10.5) base105 += subtotal;
-        else base21 += subtotal;
-      });
-
-      const iva21 = (base21 + costoEnvio) * 0.21;
-      const iva105 = base105 * 0.105;
-      const baseImponible = base21 + base105 + costoEnvio;
-      const totalFinal = baseImponible + iva21 + iva105 - descuentosTotales;
-
-      return { base21, base105, costoEnvio, iva21, iva105, descuentosTotales, baseImponible, totalFinal };
-    };
-
-    const resumenFiscal = calcularResumenFiscal(cotizacion.productos, cotizacion.costo_envio || 0);
 
     const subtotalProductos = (resumenFiscal.base21 + resumenFiscal.base105).toFixed(2);
     const totalFinal = resumenFiscal.totalFinal.toFixed(2);
@@ -568,31 +536,9 @@ const ResumenCotizacion = () => {
       }
     });
 
-    // Función para calcular resumen fiscal
-    const calcularResumenFiscal = (productos, costoEnvio = 0) => {
-      let base21 = 0, base105 = 0, descuentosTotales = 0;
-
-      productos.forEach(p => {
-        const precioFinal = Number(p.precio_unitario) - Number(p.descuento);
-        const subtotal = precioFinal * Number(p.cantidad);
-        const iva = Number(p.tasa_iva ?? 21);
-
-        descuentosTotales += Number(p.descuento ?? 0);
-
-        if (iva === 21) base21 += subtotal;
-        else if (iva === 10.5) base105 += subtotal;
-        else base21 += subtotal;
-      });
-
-      const iva21 = (base21 + costoEnvio) * 0.21;
-      const iva105 = base105 * 0.105;
-      const baseImponible = base21 + base105 + costoEnvio;
-      const totalFinal = baseImponible + iva21 + iva105 - descuentosTotales;
-
-      return { base21, base105, costoEnvio, iva21, iva105, descuentosTotales, baseImponible, totalFinal };
-    };
-
-    const resumenFiscal = calcularResumenFiscal(cotizacion.productos, cotizacion.costo_envio || 0);
+    // Función para calcular resumen fiscal REMOVIDA
+    // Usamos el resumen ya calculado arriba
+    // const resumenFiscal = ... // ya lo tenemos en el scope de generarPDFCotizacion gracias al cambio anterior
 
     const subtotalProductos = (resumenFiscal.base21 + resumenFiscal.base105).toFixed(2);
     const totalFinal = resumenFiscal.totalFinal.toFixed(2);
@@ -707,8 +653,7 @@ const ResumenCotizacion = () => {
                 <p><strong>Tipo de cambio:</strong> {tipoCambio}</p>
                 <p><strong>Plazo de pago:</strong> {diasPago}</p>
                 {observaciones && <p><strong>Observaciones:</strong> {observaciones}</p>}
-                <p><strong>Costo de envío:</strong> ${Number(cotizacion.costo_envio || 0).toFixed(2)}</p>
-                <p><strong>Envío bonificado:</strong> {cotizacion.envio_bonificado ? 'Sí' : 'No'}</p>
+                <p><strong>Costo de envío:</strong> ${resumenFiscal.costoEnvio.toFixed(2)}</p>
               </div>
 
             </div>
@@ -802,7 +747,10 @@ const ResumenCotizacion = () => {
               <tbody>
                 <tr><td>Base 21% (productos con iva 21%)</td><td className="text-end text-primary">${resumenFiscal.base21.toFixed(2)}</td></tr>
                 <tr><td>Base 10.5% (productos con iva 10.5%)</td><td className="text-end text-info">${resumenFiscal.base105.toFixed(2)}</td></tr>
-                <tr><td>Costo de envío</td><td className="text-end text-secondary">${resumenFiscal.costoEnvio.toFixed(2)}</td></tr>
+                <tr>
+                  <td>Costo de envío</td>
+                  <td className="text-end text-secondary">${resumenFiscal.costoEnvio.toFixed(2)}</td>
+                </tr>
                 <tr><td>IVA 21% (incluye envío)</td><td className="text-end text-primary">${resumenFiscal.iva21.toFixed(2)}</td></tr>
                 <tr><td>IVA 10.5%</td><td className="text-end text-info">${resumenFiscal.iva105.toFixed(2)}</td></tr>
                 <tr><td>Descuentos</td><td className="text-end text-danger">${resumenFiscal.descuentosTotales.toFixed(2)}</td></tr>

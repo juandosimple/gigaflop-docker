@@ -1,15 +1,15 @@
 import React from 'react';
-import '../CSS/dashboard.css';  
+import '../CSS/dashboard.css';
 import '../CSS/menu.css';
 
 
 function usd(n) {
   return typeof n === 'number'
     ? n.toLocaleString('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2
-      })
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    })
     : '—';
 }
 
@@ -33,7 +33,7 @@ function mostrarEstado(nombre) {
   }
 }
 
-const CotizacionesTableDashb = ({ slice, page, pages, setPage, filtered }) => {
+const CotizacionesTableDashb = ({ slice, page, pages, setPage, filtered, loading }) => {
   return (
     <section className="table-wrap ">
       <div className="table-head ">
@@ -44,64 +44,77 @@ const CotizacionesTableDashb = ({ slice, page, pages, setPage, filtered }) => {
       <div className="table-responsive">
         <table className="table">
           <thead className="table-primary">
-           <tr > 
-            <th style={{ fontSize: '0.9rem' }}>#</th> 
-            <th style={{ fontSize: '0.9rem' }}>Fecha</th> 
-            <th style={{ fontSize: '0.9rem' }}>Cliente</th> 
-            <th style={{ fontSize: '0.9rem' }}>Vendedor</th> 
-            <th style={{ fontSize: '0.9rem' }}>Total (USD)</th> 
-            <th style={{ fontSize: '0.9rem' }}>Estado</th> 
-            <th style={{ fontSize: '0.9rem' }}>Marca</th> 
-            <th style={{ fontSize: '0.9rem' }}>Productos</th> 
+            <tr >
+              <th style={{ fontSize: '0.9rem' }}>#</th>
+              <th style={{ fontSize: '0.9rem' }}>Fecha</th>
+              <th style={{ fontSize: '0.9rem' }}>Cliente</th>
+              <th style={{ fontSize: '0.9rem' }}>Vendedor</th>
+              <th style={{ fontSize: '0.9rem' }}>Total (USD)</th>
+              <th style={{ fontSize: '0.9rem' }}>Estado</th>
+              <th style={{ fontSize: '0.9rem' }}>Marca</th>
+              <th style={{ fontSize: '0.9rem' }}>Productos</th>
             </tr>
           </thead>
           <tbody>
-            {slice.map(r => {
-              // 🔹 ocultar borrador
-              if (r.estado_nombre?.toLowerCase() === "borrador") {
-                return null;
-              }
-
-              let badgeClass = "badge";
-              switch (r.estado_nombre?.toLowerCase()) {
-                case "aprobada":
-                case "aceptada":
-                case "finalizada_aceptada":
-                  badgeClass += " ok"; // verde
-                  break;
-                case "pendiente":
-                  badgeClass += " warn"; // amarillo
-                  break;
-                case "rechazada":
-                case "finalizada_rechazada":
-                  badgeClass += " danger"; // rojo
-                  break;
-                case "vencida":
-                  badgeClass += " expired"; // gris
-                  break;
-                default:
-                  badgeClass += " neutral"; // azul
-              }
-
-              return (
-                <tr key={r.id}>
-                  <td>{r.id}</td>
-                  <td>{r.fecha}</td>
-                  <td>{r.cliente_nombre}</td>
-                  <td>{r.usuario_nombre}</td>
-                  <td>{usd(Number(r.total))}</td>
-                  <td><span className={badgeClass}>{mostrarEstado(r.estado_nombre)}</span></td>
-                  <td>{r.marcas}</td> 
-                  <td>{r.productos}</td>
-                </tr>
-              );
-            })}
-            {slice.filter(r => r.estado_nombre?.toLowerCase() !== "borrador").length === 0 && (
+            {loading ? (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', opacity: 0.7 }}>
-                  No hay resultados con los filtros aplicados.
+                <td colSpan={8} className="text-center py-5">
+                  <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+                    <span className="visually-hidden">Cargando...</span>
+                  </div>
+                  <p className="mt-2 text-muted fw-bold">Cargando resultados...</p>
                 </td>
               </tr>
+            ) : (
+              <>
+                {slice.map(r => {
+                  // 🔹 ocultar borrador
+                  if (r.estado_nombre?.toLowerCase() === "borrador") {
+                    return null;
+                  }
+
+                  let badgeClass = "badge";
+                  switch (r.estado_nombre?.toLowerCase()) {
+                    case "aprobada":
+                    case "aceptada":
+                    case "finalizada_aceptada":
+                      badgeClass += " ok"; // verde
+                      break;
+                    case "pendiente":
+                      badgeClass += " warn"; // amarillo
+                      break;
+                    case "rechazada":
+                    case "finalizada_rechazada":
+                      badgeClass += " danger"; // rojo
+                      break;
+                    case "vencida":
+                      badgeClass += " expired"; // gris
+                      break;
+                    default:
+                      badgeClass += " neutral"; // azul
+                  }
+
+                  return (
+                    <tr key={r.id}>
+                      <td>{r.id}</td>
+                      <td>{r.fecha}</td>
+                      <td>{r.cliente_nombre}</td>
+                      <td>{r.usuario_nombre}</td>
+                      <td>{usd(Number(r.total))}</td>
+                      <td><span className={badgeClass}>{mostrarEstado(r.estado_nombre)}</span></td>
+                      <td>{r.marcas}</td>
+                      <td>{r.productos}</td>
+                    </tr>
+                  );
+                })}
+                {slice.filter(r => r.estado_nombre?.toLowerCase() !== "borrador").length === 0 && (
+                  <tr>
+                    <td colSpan={8} style={{ textAlign: 'center', opacity: 0.7, padding: '2rem' }}>
+                      No hay resultados con los filtros aplicados.
+                    </td>
+                  </tr>
+                )}
+              </>
             )}
           </tbody>
         </table>

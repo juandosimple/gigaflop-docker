@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
 import BuscadorProductos from "../components/BuscadorProductos";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "../CSS/nuevaCotizacion.css";
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from 'react-router-dom';
+import { calcularResumen } from '../utils/calculosCotizacion';
 import { useUser } from "../context/UserContext";
 import { useParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 
 // Página para crear una nueva cotización
@@ -1518,61 +1517,7 @@ const NuevaCotizacion = () => {
 
   // Resumen de la cotización: totales, IVA, descuentos, etc.
   const resumen = useMemo(() => {
-    let base21 = 0,
-      base105 = 0; //inicializo las bases suma de productos con IVA 21% y 10.5%
-    let totalDescuentos = 0; //suma de todos los descuentos aplicados.
-
-    const safeNum = (v) => {
-      // helper para parsear números seguros
-      const n = parseFloat(v);
-      return Number.isFinite(n) ? n : 0;
-    };
-
-    //quí se calcula el subtotal de cada producto con markup y descuento, y se lo acumula en la base correspondiente según la tasa de IVA.
-    (Array.isArray(carrito) ? carrito : []).forEach((p) => {
-      // recorro productos en el carrito
-      const precio = safeNum(p.precio);
-      const cantidad = safeNum(p.cantidad) || 1;
-      const markup = safeNum(p.markup);
-      const descuento = safeNum(p.descuento);
-      const iva = safeNum(p.tasa_iva) || 21;
-
-      totalDescuentos += descuento;
-      const pf = precio * (1 + markup / 100);
-      const base = Math.max(0, cantidad * pf - descuento);
-
-      if (iva === 21) base21 += base;
-      else if (iva === 10.5) base105 += base;
-      else base21 += base;
-    });
-
-    const baseProd = base21 + base105;
-
-    // Costo de envío original
-    const envio = safeNum(costoEnvio);
-
-    // Bonificación si el total supera 1500
-    const envioBonificado = baseProd >= 1500; // envío gratis si baseProd >= 1500
-    const envioFinal = envioBonificado ? 0 : envio; // costo de envío final
-
-    // Cálculo de IVA y total final de la cotización
-
-    const iva21 = (base21 + envioFinal) * 0.21; // IVA sobre base 21%
-    const iva105 = base105 * 0.105; // IVA sobre base 10.5%
-    const baseImp = baseProd + envioFinal; // base imponible total
-    const total = baseImp + iva21 + iva105; // total final incluyendo IVA El total final incluye productos + envío + IVA.
-
-    return {
-      // retorno del resumen calculado
-      baseProd,
-      envio: envioFinal,
-      envioBonificado,
-      baseImp,
-      iva21,
-      iva105,
-      total,
-      totalDescuentos,
-    };
+    return calcularResumen(carrito, costoEnvio);
   }, [carrito, costoEnvio]);
 
 

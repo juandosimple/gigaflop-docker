@@ -137,8 +137,8 @@ async agregarDetalle(idCotizacion, productos) {
     const cantidad = Number(item.cantidad || 1);
     const markupIngresado = Number(item.markup_ingresado ?? item.markup ?? 0);
 
-    // Subtotal sin IVA
-    const subtotal = (precioUnitario - descuento) * cantidad;
+    // Subtotal sin IVA (con markup)
+    const subtotal = (precioUnitario * (1 + markupIngresado / 100) - descuento) * cantidad;
 
     // IVA calculado según tasa
     const iva = subtotal * (tasaIva / 100);
@@ -190,8 +190,8 @@ async reemplazarProductos(idCotizacion, productos) {
       );
       const tasaIva = productoRows[0] ? Number(productoRows[0].tasa_iva || 21) : 21;
 
-      // Subtotal sin IVA
-      const subtotal = (precio_unitario - descuento) * cantidad;
+      // Subtotal sin IVA (con markup)
+      const subtotal = (precio_unitario * (1 + markup_ingresado / 100) - descuento) * cantidad;
 
       // IVA calculado según tasa
       const iva = subtotal * (tasaIva / 100);
@@ -331,13 +331,15 @@ async obtenerTodasPorUsuario(id_usuario) {
        cc.forma_pago,
        cc.tipo_cambio,
        cc.dias_pago,
-       ROUND(
-         COALESCE(SUM(CASE WHEN p.tasa_iva = 21 THEN dp.subtotal ELSE 0 END), 0) +
-         COALESCE(SUM(CASE WHEN p.tasa_iva = 10.5 THEN dp.subtotal ELSE 0 END), 0) +
-         c.costo_envio +
-         (COALESCE(SUM(CASE WHEN p.tasa_iva = 21 THEN dp.subtotal ELSE 0 END), 0) + c.costo_envio) * 0.21 +
-         COALESCE(SUM(CASE WHEN p.tasa_iva = 10.5 THEN dp.subtotal ELSE 0 END), 0) * 0.105
-       , 2) AS total
+        ROUND(
+          COALESCE(SUM(dp.subtotal), 0) +
+          IF(COALESCE(SUM(dp.subtotal), 0) >= 1500, 0, c.costo_envio) +
+          (
+            COALESCE(SUM(CASE WHEN p.tasa_iva = 10.5 THEN 0 ELSE dp.subtotal END), 0) +
+            IF(COALESCE(SUM(dp.subtotal), 0) >= 1500, 0, c.costo_envio)
+          ) * 0.21 +
+          COALESCE(SUM(CASE WHEN p.tasa_iva = 10.5 THEN dp.subtotal ELSE 0 END), 0) * 0.105
+        , 2) AS total
      FROM cotizaciones c
      LEFT JOIN estados e ON c.id_estado = e.id
      LEFT JOIN cliente cl ON c.id_cliente = cl.id
@@ -633,10 +635,12 @@ async obtenerTodas() {
        cc.tipo_cambio,
        cc.dias_pago,
        ROUND(
-         COALESCE(SUM(CASE WHEN p.tasa_iva = 21 THEN dp.subtotal ELSE 0 END), 0) +
-         COALESCE(SUM(CASE WHEN p.tasa_iva = 10.5 THEN dp.subtotal ELSE 0 END), 0) +
-         c.costo_envio +
-         (COALESCE(SUM(CASE WHEN p.tasa_iva = 21 THEN dp.subtotal ELSE 0 END), 0) + c.costo_envio) * 0.21 +
+         COALESCE(SUM(dp.subtotal), 0) +
+         IF(COALESCE(SUM(dp.subtotal), 0) >= 1500, 0, c.costo_envio) +
+         (
+            COALESCE(SUM(CASE WHEN p.tasa_iva = 10.5 THEN 0 ELSE dp.subtotal END), 0) +
+            IF(COALESCE(SUM(dp.subtotal), 0) >= 1500, 0, c.costo_envio)
+         ) * 0.21 +
          COALESCE(SUM(CASE WHEN p.tasa_iva = 10.5 THEN dp.subtotal ELSE 0 END), 0) * 0.105
        , 2) AS total
      FROM cotizaciones c
@@ -683,7 +687,15 @@ async obtenerTodasParaDashboard() {
        cc.dias_pago,
        GROUP_CONCAT(p.detalle SEPARATOR ', ') AS productos,
        GROUP_CONCAT(p.marca SEPARATOR ', ') AS marcas,
-       COALESCE(SUM(dp.total_iva_incluido), 0) AS total
+        ROUND(
+          COALESCE(SUM(dp.subtotal), 0) +
+          IF(COALESCE(SUM(dp.subtotal), 0) >= 1500, 0, c.costo_envio) +
+          (
+            COALESCE(SUM(CASE WHEN p.tasa_iva = 10.5 THEN 0 ELSE dp.subtotal END), 0) +
+            IF(COALESCE(SUM(dp.subtotal), 0) >= 1500, 0, c.costo_envio)
+          ) * 0.21 +
+          COALESCE(SUM(CASE WHEN p.tasa_iva = 10.5 THEN dp.subtotal ELSE 0 END), 0) * 0.105
+        , 2) AS total
      FROM cotizaciones c
      LEFT JOIN estados e ON c.id_estado = e.id
      LEFT JOIN cliente cl ON c.id_cliente = cl.id

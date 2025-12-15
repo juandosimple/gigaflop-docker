@@ -213,8 +213,8 @@ export async function iniciarCotizacion(req, res) {
           const precio_unitario = Number(item.precio_unitario ?? item.precio ?? 0);
           const descuento = Number(item.descuento ?? 0);
           const markup_ingresado = aNumeroONuloLocal(item.markup_ingresado);
-      // Subtotal sin IVA
-const subtotal = (precio_unitario - descuento) * cantidad;
+      // Subtotal sin IVA (con markup)
+      const subtotal = (precio_unitario * (1 + markup_ingresado / 100) - descuento) * cantidad;
 
 // Recuperar tasa de IVA del producto
 const [productoRows] = await db.query(
