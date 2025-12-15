@@ -1,0 +1,15 @@
+import { Router } from "express";
+import { login, register, logout, profile, checkAuth} from "../controllers/usuariosControllers.js";
+import { authRequired } from "../middlewares/validateToken.js";
+
+
+const router = Router();
+
+// Rutas de autenticación
+router.post('/register', register);
+router.post('/login', login);
+router.post('/logout', logout);
+router.get('/profile', authRequired, profile);
+router.get('/checkAuth', authRequired, checkAuth)
+
+export default router;

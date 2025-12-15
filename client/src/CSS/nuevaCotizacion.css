@@ -1,0 +1,191 @@
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  /* fondo grisáceo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.modal-dialog-custom {
+  width: 90%;
+  max-width: 1000px;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-header,
+.modal-footer {
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+}
+
+.modal-body {
+  padding: 20px;
+  max-height: 70vh;
+  /* Limita la altura del cuerpo a 70% de la ventana */
+  overflow-y: auto;
+  /* Habilita el scroll vertical */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-backdrop-custom {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.fade-out {
+  opacity: 0;
+}
+
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+  opacity: 1;
+  transition: opacity 300ms ease;
+}
+
+.modal-dialog-custom {
+  max-width: 600px;
+  width: 100%;
+}
+
+.modal-box {
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 300ms ease;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  /* Limita la altura total del modal */
+  overflow: hidden;
+}
+
+.modal-body {
+  flex-grow: 1;
+  padding: 1rem;
+}
+
+
+
+.fade-in {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.d-none {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+
+
+.buscador-cliente-container {
+  position: relative;
+}
+
+.sugerencias-lista {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  z-index: 1000;
+  max-height: 200px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sugerencia-item {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.sugerencia-item:hover {
+  background-color: #f0f0f0;
+}
+
+/* Scoped fix for checkbox display in NuevaCotizacion page */
+.nueva-cotizacion-root .form-check-input {
+  width: 1.25rem !important;
+  /* explicit definition keeps it small across browsers */
+  height: 1.25rem !important;
+  min-width: 0 !important;
+  /* remove any inherited min-width */
+  flex: 0 0 auto !important;
+  /* avoid flex stretching */
+  -webkit-appearance: checkbox !important;
+  appearance: auto !important;
+  display: inline-block !important;
+  margin-top: 0 !important;
+  /* we align using flexbox now */
+}
+
+/* Ensure label spacing and vertical centering */
+.nueva-cotizacion-root .form-check {
+  gap: 0.5rem;
+}
+
+.table td {
+  vertical-align: top;
+}

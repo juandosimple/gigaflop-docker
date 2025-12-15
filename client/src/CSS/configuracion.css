@@ -1,0 +1,294 @@
+/* -------------------------
+   Barra superior tipo Cotizaciones
+-------------------------- */
+
+.config-topbar {
+  width: 100%;
+  margin-top: 140px;
+  /* deja espacio para el header fijo */
+  background-color: #ffffff;
+  border-top: 1px solid #a7a7b19c;
+  box-shadow: 0px 5px 5px #d9e2f1;
+  /* misma idea que menu-superior */
+}
+
+.config-matriz {
+  margin-top: 20px;
+  width: 100%;
+  height: 33vw;
+  padding: 10px;
+}
+
+/* >>> Cambiá esta parte <<< */
+.config-topbar-inner {
+  width: 100%;
+  /* antes tenía max-width y margin:auto */
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* título izquierda / botón derecha */
+}
+
+.config-topbar-title {
+  color: #4285f4;
+  font-size: 2.5vw;
+  font-weight: bold;
+  margin: 0;
+  text-align: left;
+  /* forzamos alineado a la izquierda */
+}
+
+
+/* El botón reutiliza .nc (gradiente azul) + .btn de Bootstrap */
+.config-topbar-btn {
+  /* opcionalmente un mínimo de ancho como el de + Nueva Cotización */
+  min-width: 180px;
+}
+
+/* Ajustes en pantallas chicas */
+@media (max-width: 992px) {
+  .config-topbar {
+    margin-top: 120px;
+  }
+
+  .config-topbar-inner {
+    padding: 16px;
+  }
+
+  .config-topbar-title {
+    font-size: 1.75rem;
+    /* en mobile usamos tamaño fijo */
+  }
+}
+
+/* Asegurar texto blanco en el botón nc */
+.btn.nc {
+  color: #ffffff !important;
+  font-weight: 500;
+}
+
+/* -------------------------
+   Layout general de la página
+-------------------------- */
+
+.config-page {
+  margin-top: 240px;
+  /* debajo de la barra superior */
+  /*padding: 24px 32px 56px;*/
+  max-width: 100%;
+  background-color: #f7f8fc;
+}
+
+/* Ajustar en pantallas chicas */
+@media (max-width: 992px) {
+  .config-page {
+    margin: 12px 0 24px;
+    max-width: 100%;
+    padding: 16px 16px 32px;
+  }
+}
+
+/* -------------------------
+   Cards generales
+-------------------------- */
+
+.config-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #eef1f7;
+  box-shadow: 0 8px 24px rgba(15, 63, 125, 0.08);
+  padding: 20px 24px 24px;
+  margin-bottom: 24px;
+}
+
+.config-card-company {
+  margin-bottom: 32px;
+}
+
+.config-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.config-card-icon {
+  font-size: 1.3rem;
+}
+
+.config-card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* -------------------------
+   Formulario datos empresa
+-------------------------- */
+
+.config-company-form {
+  margin-top: 4px;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+}
+
+@media (max-width: 992px) {
+  .config-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.config-field label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #495057;
+}
+
+.required {
+  color: #dc3545;
+  margin-left: 2px;
+}
+
+.config-actions-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+/* -------------------------
+   Usuarios del sistema
+-------------------------- */
+
+.config-card-header--users {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.config-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.config-card-header-right {
+  max-width: 320px;
+  width: 100%;
+}
+
+.config-search {
+  font-size: 0.85rem;
+}
+
+/* Tabla */
+
+.config-table-wrapper {
+  margin-top: 12px;
+}
+
+.config-table thead th {
+  font-size: 0.85rem;
+  color: #6c757d;
+  border-bottom-color: #dee2e6;
+}
+
+.config-table tbody td {
+  font-size: 0.9rem;
+}
+
+/* Chip de rol y estado */
+
+.chip-rol {
+  background-color: #ffe8a1;
+  color: #7a5a00;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+}
+
+.estado-activo {
+  background-color: #d1f2e5;
+  color: #0f7b4b;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+}
+
+/* Botón de acción (solamente editar) */
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.icon-btn.edit:hover {
+  transform: scale(1.1);
+}
+
+/* -------------------------
+   Modal nuevo usuario
+-------------------------- */
+
+.config-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 1040;
+}
+
+.config-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1050;
+}
+
+.config-modal-content {
+  background-color: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 560px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+  overflow: hidden;
+}
+
+.config-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid #eef1f7;
+}
+
+.config-modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.config-modal-body {
+  padding: 1rem 1.25rem 0.75rem;
+}
+
+.config-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 1.25rem 1rem;
+  border-top: 1px solid #eef1f7;
+}
+
+.config-modal-close {
+  font-size: 0.9rem;
+}
