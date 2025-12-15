@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  db:
+    platform: linux/amd64
+    image: mysql:8.0
+    container_name: gigaflop_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: R00t_M@st3r_K3y_99!
+      MYSQL_DATABASE: gigaflop_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: Us3r_D4t4_Acc3ss_77$
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:
+    build: ./server
+    container_name: gigaflop_backend
+    restart: always
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - DB_ONLINE_HOST=db
+      - DB_ONLINE_USER=user
+      - DB_ONLINE_PASSWORD=Us3r_D4t4_Acc3ss_77$
+      - DB_ONLINE_NAME=gigaflop_db
+      - DB_ONLINE_PORT=3306
+      - JWT_SECRET=JWT_S3cr3t_T0k3n_G3n_55#
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3004,http://localhost:3001,http://localhost:8080,http://itnow.com.ar
+      # Configuración para SMTP Interno
+      - EMAIL_HOST=smtp
+      - EMAIL_PORT=25
+      - EMAIL_SECURE=false
+      - EMAIL_USER=no-reply@itnow.com.ar
+      - EMAIL_PASS= # Sin password para relay interno
+    volumes:
+      - ./public/images:/usr/src/app/public/images
+    depends_on:
+      - db
+      - smtp
+
+  smtp:
+    image: namshi/smtp
+    container_name: gigaflop_smtp
+    restart: always
+    environment:
+      - RELAY_NETWORKS=:172.16.0.0/12:192.168.0.0/16:10.0.0.0/8
+    ports:
+      - "25:25"
+
+  frontend:
+    build: ./client
+    container_name: gigaflop_frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: gigaflop_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
